@@ -1,64 +1,40 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
-import { processInput } from "@/app/input-server";
+import { processInput } from "@/actions";
 
 export default function InputDisplay() {
-  const [inputValue, setInputValue] = useState("");
-  const [displayedValue, setDisplayedValue] = useState("");
-  const [isProcessed, setIsProcessed] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleButtonClick = async (e: FormEvent) => {
-    e.preventDefault();
-
-    if (isProcessed) {
-      setInputValue("");
-      setDisplayedValue("");
-      setIsProcessed(false);
-    } else {
-      setIsLoading(true);
-      const processedValue = await processInput(inputValue);
-      setDisplayedValue(processedValue);
-      setIsProcessed(true);
-      setIsLoading(false);
-    }
-  };
+  const [state, formAction, isPending] = useActionState(processInput, null);
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-6">
-      {displayedValue && (
+      {state?.message && (
         <div className="mb-4 p-3 bg-gray-100 rounded">
           <p className="font-semibold">Displayed Data:</p>
-          <p>{displayedValue}</p>
+          <p>{state.message}</p>
         </div>
       )}
       <form
+        action={formAction}
         className="flex justify-between items-center space-x-4"
-        onSubmit={handleButtonClick}
       >
         <Input
           type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          name="input"
           placeholder="Enter your data"
           className="w-3/4"
-          disabled={isLoading}
+          disabled={isPending}
         />
-        <Button
-          type="submit"
-          className="w-1/5"
-          disabled={isLoading || (!isProcessed && !inputValue)}
-        >
-          {isLoading ? (
+        <Button type="submit" className="w-1/5" disabled={isPending}>
+          {isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Loading
             </>
-          ) : isProcessed ? (
+          ) : state?.message ? (
             "Clear"
           ) : (
             "Process"
