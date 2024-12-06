@@ -1,36 +1,32 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Loader2 } from 'lucide-react'
+import { useState, FormEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
+import { processInput } from "@/app/input-server";
 
 export default function InputDisplay() {
-  const [inputValue, setInputValue] = useState('')
-  const [displayedValue, setDisplayedValue] = useState('')
-  const [isProcessed, setIsProcessed] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [inputValue, setInputValue] = useState("");
+  const [displayedValue, setDisplayedValue] = useState("");
+  const [isProcessed, setIsProcessed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value)
-  }
+  const handleButtonClick = async (e: FormEvent) => {
+    e.preventDefault();
 
-  const handleButtonClick = async () => {
     if (isProcessed) {
-      // Clear the states
-      setInputValue('')
-      setDisplayedValue('')
-      setIsProcessed(false)
+      setInputValue("");
+      setDisplayedValue("");
+      setIsProcessed(false);
     } else {
-      // Process the input
-      setIsLoading(true)
-      // Simulate processing delay
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      setDisplayedValue(inputValue)
-      setIsProcessed(true)
-      setIsLoading(false)
+      setIsLoading(true);
+      const processedValue = await processInput(inputValue);
+      setDisplayedValue(processedValue);
+      setIsProcessed(true);
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-6">
@@ -40,17 +36,20 @@ export default function InputDisplay() {
           <p>{displayedValue}</p>
         </div>
       )}
-      <div className="flex justify-between items-center space-x-4">
+      <form
+        className="flex justify-between items-center space-x-4"
+        onSubmit={handleButtonClick}
+      >
         <Input
           type="text"
           value={inputValue}
-          onChange={handleInputChange}
+          onChange={(e) => setInputValue(e.target.value)}
           placeholder="Enter your data"
           className="w-3/4"
           disabled={isLoading}
         />
-        <Button 
-          onClick={handleButtonClick}
+        <Button
+          type="submit"
           className="w-1/5"
           disabled={isLoading || (!isProcessed && !inputValue)}
         >
@@ -60,13 +59,12 @@ export default function InputDisplay() {
               Loading
             </>
           ) : isProcessed ? (
-            'Clear'
+            "Clear"
           ) : (
-            'Process'
+            "Process"
           )}
         </Button>
-      </div>
+      </form>
     </div>
-  )
+  );
 }
-
